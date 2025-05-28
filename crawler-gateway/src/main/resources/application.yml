@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: crawler-gateway
+
+  cloud:
+    sentinel:
+      transport:
+        dashboard: 192.168.8.131:8858
+        port: 8719 #是sentinel应用端和控制台通信端口
+      scg:
+        fallback: #scg.fallback为sentinel限流后的响应配置
+          mode: response
+          response-status: 455
+          response-body: 已被限流
+          heartbeat-interval-ms: 500 #心跳时间
+    nacos:
+      discovery:
+        server-addr: 192.168.8.131:8848  # 你的 Nacos 地址
+        data-id: crawler-gateway-sentinel-rules
+        group-id: DEFAULT_GROUP
+        data-type: json
+        rule-type: gw-flow
+    gateway:
+      discovery:
+        locator:
+          enabled: true                      # 开启服务发现转发支持
+          lower-case-service-id: true        # 服务名小写
+
+      routes:
+        - id: crawler-core
+          uri: lb://crawler-core             # 使用服务名 lb:// 前缀
+          predicates:
+            - Path=/crawler-core/**
+          filters:
+            - StripPrefix=1
+        - id: crawler-auth
+          uri: lb://crawler-auth             # 使用服务名 lb:// 前缀
+          predicates:
+            - Path=/crawler-auth/**
+          filters:
+            - StripPrefix=1
+# Redis配置（假设本地默认端口）
+  redis:
+    lettuce:
+      host: 127.0.0.1
+      port: 6379
+      password: 123456
+
+logging:
+  level:
+    org.springframework.cloud.gateway: debug

@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: crawler-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.8.131:8848  # 替换为你的 nacos 地址
+
+    gateway:
+      routes:
+        - id: crawler-core
+          uri: lb://crawler-core
+          predicates:
+            - Path=/crawler-core/**
+          filters:
+            - StripPrefix=1
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 5    # 每秒允许5个请求
+#                redis-rate-limiter.burstCapacity: 10   # 最大突发10个请求
+#                redis-rate-limiter.requestedTokens: 1  # 每个请求消耗1个令牌
+        - id: crawler-api
+          uri: lb://crawler-api
+          predicates:
+            - Path=/crawler-api/**
+          filters:
+            - StripPrefix=1
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 10
+#                redis-rate-limiter.burstCapacity: 20
+#                redis-rate-limiter.requestedTokens: 1
+
+# Redis配置（假设本地默认端口）
+#  redis:
+#    lettuce:
+#      host: 127.0.0.1
+#      port: 6379
+#      password: 123456
+#      discovery:
+#        locator:
+#          enabled: true       # 开启基于服务发现的路由
+#          lower-case-service-id: true
+
+
